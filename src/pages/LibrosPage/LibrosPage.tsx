@@ -1,17 +1,15 @@
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { AxiosResponse } from "axios";
 import React, { useMemo } from "react";
+import { SkeletonPage } from "../../components/SkeletonPage";
 import { axios } from "../../config/axios";
 import { Paginate } from "../../model";
+import { LibroListItem } from "./components/LibroListItem";
 import { Libro } from "./models";
-import { AxiosResponse } from "axios";
-import { SkeletonPage } from "../../components/SkeletonPage";
-import { Skeleton } from "primereact/skeleton";
-import { Button } from "primereact/button";
-import { Badge } from "primereact/badge";
-import { InputText } from "primereact/inputtext";
-import { DataView } from "primereact/dataview";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import InfiniteScroll from "react-infinite-scroll-component";
+
+import ScrollContainer from 'react-indiana-drag-scroll';
 import { ProgressSpinner } from "primereact/progressspinner";
+
 const LibrosPage: React.FC = () => {
   const { data, isLoading, fetchNextPage, hasNextPage } = useInfiniteQuery<
     AxiosResponse<Paginate<Libro>>
@@ -21,7 +19,7 @@ const LibrosPage: React.FC = () => {
       return axios.get("/libros", {
         params: {
           page: pageParam,
-          limit: 100,
+          limit: 15,
         },
       });
     },
@@ -39,113 +37,75 @@ const LibrosPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  const [value, setValue] = React.useState<string>("");
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
-  };
-
   const filterData = (data?: Libro[]) => {
     if (!data) return [];
 
-    if (value === "") return data;
-    return data.filter((libro) => {
-      return libro.titulo.toLowerCase().includes(value.toLowerCase());
-    });
+    return data;
   };
-
+  const spinnerRef = React.useRef<HTMLDivElement | null>(null);
+  const ref = React.useRef<HTMLDivElement | null>(null);
   const books = useMemo(() => {
     return data?.pages.flatMap((page) => page.data.data) || [];
   }, [data]);
+
+  const onIntersection = (entries: IntersectionObserverEntry[]) => {
+    if (entries.some((entry) => entry.isIntersecting)) {
+      fetchNextPage();
+    }
+  }
+
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(onIntersection, {
+      root: null,
+      rootMargin: "0%",//"100% 0% 100% 0%",
+      threshold: 1.0
+    })
+
+    if (spinnerRef.current) {
+      observer.observe(spinnerRef.current)
+    }
+
+    return () => {
+      if (spinnerRef.current) {
+        observer.unobserve(spinnerRef.current)
+      }
+    }
+  }, [
+    spinnerRef.current,
+    hasNextPage,
+    fetchNextPage
+  ])
 
   if (isLoading) {
     return <SkeletonPage />;
   }
 
   return (
-    <div className="flex justify-between p-3 gap-3">
+    <div className="flex flex-col">
       <div>
-        <span className="p-input-icon-left">
-          <i className="pi pi-search" />
-          <InputText
-            placeholder="Buscar"
-            value={value}
-            onChange={handleChange}
-          />
-        </span>
+        Quedan {(data?.pages[0].data.total ?? 0) - books.length} libros por cargar
       </div>
-      <InfiniteScroll
-        dataLength={books.length}
-        next={fetchNextPage}
-        hasMore={hasNextPage && books.length > 5}
-        loader={
-          <div className="w-full my-2 flex justify-center overflow-hidden">
-            <ProgressSpinner
-              style={{ width: "30px", height: "30px" }}
-              strokeWidth="8"
-              fill="var(--surface-ground)"
-              animationDuration=".5s"
-            />
-          </div>
-        }
-        endMessage={
-          <p style={{ textAlign: "center" }}>
-            <b>Ya no se encontraron mas resultados</b>
-          </p>
-        }
-      >
-        <DataView
-          className="w-full border rounded-md"
-          value={filterData(books)}
-          itemTemplate={(libro: Libro) => {
-            return (
-              <div className="p-4 border-1 border-round surface-border surface-card flex justify-between">
-                <div className="flex">
-                  <div className="mr-2">
-                    <Skeleton shape="rectangle" size="12rem"></Skeleton>
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex gap-1 text-lg items-center">
-                      <span>Lote:</span>
-                      <Badge value={libro.lote} severity={"info"} />
-                    </div>
-                    <h2
-                      className="
-									text-2xl
-									font-bold
-									text-gray-800
-									mb-2
-								"
-                    >
-                      {libro.titulo}
-                    </h2>
-                    <p
-                      className="
-									text-gray-600
-								"
-                    >
-                      {libro.description}
-                    </p>
-                    {/* <div
-									className="
-									text-gray-600
-								"
-								>
-									Nro de lote: {libro.lote}
-								</div> */}
-                  </div>
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    label="Obtener"
-                    icon="pi pi-money-bill"
-                    size="small"
-                  />
-                </div>
-              </div>
-            );
-          }}
-        />
-      </InfiniteScroll>
+      <ScrollContainer className="flex">
+        {filterData(books).map((libro) => (
+          <LibroListItem libro={libro} />
+        ))}
+        <div className="flex">
+          {hasNextPage ?
+            <div className="ms-4 overflow-hidden my-auto" ref={spinnerRef}>
+              <ProgressSpinner
+                style={{ width: "30px", height: "30px" }}
+                strokeWidth="5"
+                fill="var(--surface-ground)"
+                animationDuration=".5s"
+              />
+            </div>
+            :
+            <p style={{ textAlign: "center" }} className="p-6 overflow-hidden my-auto">
+              <b>Ya no se encontraron mas resultados</b>
+            </p>
+          }
+        </div>
+      </ScrollContainer>
     </div>
   );
 };
