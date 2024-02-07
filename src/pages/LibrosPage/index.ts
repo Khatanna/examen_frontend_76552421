@@ -1,0 +1,1 @@
+export { default as LibrosPage } from './LibrosPage';

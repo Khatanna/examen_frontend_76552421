@@ -1,0 +1,1 @@
+export { default as AutoresPage } from './AutoresPage';
