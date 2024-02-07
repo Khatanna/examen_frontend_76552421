@@ -7,7 +7,7 @@ import { Paginate } from "../../model";
 import { LibroListItem } from "./components/LibroListItem";
 import { Libro } from "./models";
 
-import ScrollContainer from 'react-indiana-drag-scroll';
+import ScrollContainer from "react-indiana-drag-scroll";
 import { ProgressSpinner } from "primereact/progressspinner";
 
 const LibrosPage: React.FC = () => {
@@ -43,7 +43,6 @@ const LibrosPage: React.FC = () => {
     return data;
   };
   const spinnerRef = React.useRef<HTMLDivElement | null>(null);
-  const ref = React.useRef<HTMLDivElement | null>(null);
   const books = useMemo(() => {
     return data?.pages.flatMap((page) => page.data.data) || [];
   }, [data]);
@@ -52,45 +51,53 @@ const LibrosPage: React.FC = () => {
     if (entries.some((entry) => entry.isIntersecting)) {
       fetchNextPage();
     }
-  }
+  };
 
   React.useEffect(() => {
     const observer = new IntersectionObserver(onIntersection, {
       root: null,
-      rootMargin: "0%",//"100% 0% 100% 0%",
-      threshold: 1.0
-    })
+      rootMargin: "0%", //"100% 0% 100% 0%",
+      threshold: 1.0,
+    });
 
     if (spinnerRef.current) {
-      observer.observe(spinnerRef.current)
+      observer.observe(spinnerRef.current);
     }
 
     return () => {
       if (spinnerRef.current) {
-        observer.unobserve(spinnerRef.current)
+        observer.unobserve(spinnerRef.current);
       }
-    }
-  }, [
-    spinnerRef.current,
-    hasNextPage,
-    fetchNextPage
-  ])
+    };
+  }, [spinnerRef.current, hasNextPage, fetchNextPage]);
 
   if (isLoading) {
     return <SkeletonPage />;
   }
 
   return (
-    <div className="flex flex-col">
-      <div>
-        Quedan {(data?.pages[0].data.total ?? 0) - books.length} libros por cargar
+    <div className="flex flex-col gap-3 p-3">
+      <div className="flex justify-between">
+        <div className="flex items-center gap-2">
+          <i
+            className="pi pi-star text-yellow-500"
+            style={{
+              fontSize: "1.4rem",
+            }}
+          ></i>
+          <div>Mas destacadados</div>
+        </div>
+        <div>
+          Quedan {(data?.pages[0].data.total ?? 0) - books.length} libros por
+          cargar
+        </div>
       </div>
-      <ScrollContainer className="flex">
+      <ScrollContainer className="flex gap-3">
         {filterData(books).map((libro) => (
           <LibroListItem libro={libro} />
         ))}
         <div className="flex">
-          {hasNextPage ?
+          {hasNextPage ? (
             <div className="ms-4 overflow-hidden my-auto" ref={spinnerRef}>
               <ProgressSpinner
                 style={{ width: "30px", height: "30px" }}
@@ -99,11 +106,14 @@ const LibrosPage: React.FC = () => {
                 animationDuration=".5s"
               />
             </div>
-            :
-            <p style={{ textAlign: "center" }} className="p-6 overflow-hidden my-auto">
+          ) : (
+            <p
+              style={{ textAlign: "center" }}
+              className="p-6 overflow-hidden my-auto"
+            >
               <b>Ya no se encontraron mas resultados</b>
             </p>
-          }
+          )}
         </div>
       </ScrollContainer>
     </div>
