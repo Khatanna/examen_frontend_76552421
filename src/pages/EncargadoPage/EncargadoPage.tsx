@@ -7,13 +7,18 @@ import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
 import { Paginator } from "primereact/paginator";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { axios } from "../../config/axios";
 import { Paginate } from "../../model";
 import { buildTimeAgo } from "../../utilities/buildTimeAgo";
 import { LibroConAutor } from "../LibrosPage/models";
 import { LibroForm } from "./components/LibroForm";
-import { useDeleteLibro } from "./hooks";
+import { useDeleteAutor, useDeleteLibro } from "./hooks";
+import { Menu } from "primereact/menu";
+import { printJSON } from "../../utilities/print-json";
+import { AutorConLibros } from "../AutoresPage/models";
+import { Toolbar } from "primereact/toolbar";
+import { AutorForm } from "./components/AutorForm";
 
 const EncargadoPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -30,29 +35,127 @@ const EncargadoPage: React.FC = () => {
       });
     },
   });
+  const { data: autores } = useQuery<AxiosResponse<Paginate<AutorConLibros>>>({
+    queryKey: ["autores"],
+    queryFn: () => {
+      return axios.get("/autores", {
+        params: {
+          limit: 5,
+          libros: true,
+        },
+      });
+    },
+  });
   const [expandedRows, setExpandedRows] = useState<LibroConAutor[]>([]);
+  const [expandedAutorRows, setExpandedAutorRows] = useState<AutorConLibros[]>(
+    [],
+  );
   const [showDialog, setShowDialog] = useState(false);
+  const [showAutores, setShowAutores] = useState(false);
+  const [showAutorDialog, setShowAutorDialog] = useState(false);
   const [libro, setLibro] = useState<LibroConAutor>();
+  const [autor, setAutor] = useState<AutorConLibros>();
+  const menuLeft = useRef(null);
+  const items = [
+    {
+      label: "Menu de opciones",
+      items: [
+        {
+          label: "Registrar libro",
+          icon: "pi pi-plus",
+          command: () => setShowDialog(true),
+        },
+        {
+          label: "Registrar autor",
+          icon: "pi pi-user-plus",
+          command: () => {
+            console.log("Registrar autor");
+          },
+        },
+      ],
+    },
+  ];
   const Header = () => {
     return (
-      <div className="flex gap-2 justify-end">
+      <div className="flex gap-2 justify-between">
+        <Menu model={items} popup ref={menuLeft} id="popup_menu_left" />
+        <div className="flex gap-2">
+          <Button
+            rounded
+            tooltip="Autores"
+            tooltipOptions={{ position: "right" }}
+            icon="pi pi-user"
+            severity="info"
+            onClick={() => setShowAutores(true)}
+            size="small"
+          />
+          <Button
+            tooltip="Clientes"
+            tooltipOptions={{ position: "right" }}
+            rounded
+            icon="pi pi-users"
+            severity="info"
+            size="small"
+          />
+          <Button
+            tooltip="Prestamos"
+            tooltipOptions={{ position: "right" }}
+            rounded
+            icon="pi pi-book"
+            severity="info"
+            size="small"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            tooltip="Exportar a PDF"
+            tooltipOptions={{ position: "left" }}
+            icon="pi pi-file-pdf"
+            rounded
+            className="p-button-danger"
+            size="small"
+          />
+          <Button
+            size="small"
+            tooltip="Exportar a Excel"
+            tooltipOptions={{ position: "left" }}
+            icon="pi pi-file-excel"
+            rounded
+            className="p-button-success"
+          />
+        </div>
         <Button
-          severity="success"
+          icon="pi pi-bars"
+          rounded
+          aria-label="Notification"
           size="small"
-          icon="pi pi-plus"
-          label="Registrar libro"
-          onClick={() => setShowDialog(true)}
+          aria-controls="popup_menu_left"
+          aria-haspopup
+          onClick={(event) => menuLeft?.current?.toggle?.(event)}
+          tooltip="Menu de opciones"
+          tooltipOptions={{ position: "left" }}
         />
       </div>
     );
   };
-  const { mutate: deleteLibroMutation, isPending } = useDeleteLibro();
 
+  const { mutate: deleteLibroMutation, isPending } = useDeleteLibro();
+  const { mutate: deleteAutorMutation, isPending: isPedingDeleteAutor } =
+    useDeleteAutor();
   const handleDelete = (id: string) => {
     deleteLibroMutation(id, {
       onSettled() {
         queryClient.invalidateQueries({
           queryKey: ["librosConAutores", page],
+        });
+      },
+    });
+  };
+  const handleDeleteAutor = (id: number) => {
+    deleteAutorMutation(id, {
+      onSettled() {
+        queryClient.invalidateQueries({
+          queryKey: ["autores"],
         });
       },
     });
@@ -74,6 +177,15 @@ const EncargadoPage: React.FC = () => {
         <span>{timeAgo}</span>
       </div>
     );
+  };
+
+  const handleCloseDialog = () => {
+    setShowDialog(false);
+    setLibro(undefined);
+  };
+  const handleCloseAutorDialog = () => {
+    setShowAutorDialog(false);
+    setAutor(undefined);
   };
 
   return (
@@ -204,9 +316,210 @@ const EncargadoPage: React.FC = () => {
         visible={showDialog}
         style={{ width: "30%" }}
         modal
-        onHide={() => setShowDialog(false)}
+        onHide={handleCloseDialog}
       >
         <LibroForm libro={libro} />
+      </Dialog>
+      <Dialog
+        header={
+          autor ? (
+            <div className="flex items-center gap-2">
+              <i
+                className="pi pi-user text-red-500"
+                style={{
+                  fontSize: "1.4rem",
+                }}
+              ></i>
+              <div>Editar autor</div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <i
+                className="pi pi-user text-red-500"
+                style={{
+                  fontSize: "1.4rem",
+                }}
+              ></i>
+              <div>Registrar autor</div>
+            </div>
+          )
+        }
+        visible={showAutorDialog}
+        style={{ width: "30%" }}
+        modal
+        onHide={handleCloseAutorDialog}
+      >
+        <AutorForm autor={autor} />
+      </Dialog>
+      <Dialog
+        modal
+        visible={showAutores}
+        header="Autores"
+        onHide={() => {
+          setShowAutores(false);
+        }}
+      >
+        <Toolbar
+          className="mb-1"
+          center={
+            <Button
+              rounded={false}
+              icon="pi pi-user-plus"
+              tooltip="Registrar autor"
+              tooltipOptions={{ position: "left" }}
+              size="small"
+              onClick={() => setShowAutorDialog(true)}
+            />
+          }
+        ></Toolbar>
+        <DataTable
+          size="small"
+          value={autores?.data.data}
+          tableStyle={{ minWidth: "50rem" }}
+          rows={20}
+          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+          currentPageReportTemplate="{first} to {last} of {totalRecords}"
+          totalRecords={data?.data.total}
+          rowExpansionTemplate={(autor) => {
+            if (autor.libros.length === 0) return <div>No tiene libros</div>;
+            return (
+              <DataTable
+                size="small"
+                value={autor.libros}
+                tableStyle={{ minWidth: "50rem" }}
+                collapsedRowIcon="pi pi-caret-right"
+                expandedRowIcon="pi pi-caret-down"
+              >
+                <Column field="id" header="N°" align={"center"} />
+                <Column field="titulo" header="Titulo" />
+                <Column
+                  field="lote"
+                  header="N° de lote"
+                  align={"center"}
+                  body={(libro: LibroConAutor) => {
+                    return <Badge value={libro.lote} severity="warning" />;
+                  }}
+                />
+                <Column
+                  field="created_at"
+                  header="Fecha de creación"
+                  align={"center"}
+                  body={(libro: LibroConAutor) => (
+                    <Chip
+                      template={contentTimeAgo(
+                        buildTimeAgo(new Date(libro.created_at).getTime()),
+                      )}
+                      className="bg-blue-400 text-white"
+                    />
+                  )}
+                />
+                <Column
+                  header="Acciones"
+                  align={"center"}
+                  body={(libro) => {
+                    return (
+                      <div className="flex gap-2 justify-center">
+                        <Button
+                          severity="danger"
+                          size="small"
+                          icon={
+                            isPending ? "pi pi-spin pi-spinner" : "pi pi-trash"
+                          }
+                          tooltip="Eliminar libro"
+                          tooltipOptions={{ position: "left" }}
+                          onClick={() => {
+                            handleDeleteAutor(libro.id);
+                          }}
+                          disabled={isPending}
+                        />
+                        <Button
+                          severity="info"
+                          size="small"
+                          icon="pi pi-pencil"
+                          tooltip="Editar libro"
+                          onClick={() => {
+                            setLibro(libro);
+                            setShowDialog(true);
+                          }}
+                          tooltipOptions={{ position: "left" }}
+                        />
+                      </div>
+                    );
+                  }}
+                />
+              </DataTable>
+            );
+          }}
+          collapsedRowIcon="pi pi-caret-right"
+          expandedRowIcon="pi pi-caret-down"
+          loading={isLoading}
+          stripedRows
+          // footer={() => (
+          //   <Paginator
+          //     first={(page - 1) * 20}
+          //     rows={data?.data.data.length || 0}
+          //     totalRecords={data?.data.total}
+          //     onPageChange={(e) => {
+          //       setPage(e.page + 1);
+          //     }}
+          //   />
+          // )}
+          expandedRows={expandedAutorRows}
+          onRowToggle={(e) => setExpandedAutorRows(e.data as AutorConLibros[])}
+        >
+          <Column field="id" header="N°" align={"center"} />
+          <Column field="name" header="Nombre" />
+          <Column expander header="Libros" align={"center"} />
+          <Column
+            field="created_at"
+            header="Fecha de creación"
+            align={"center"}
+            body={(libro: LibroConAutor) => (
+              <Chip
+                template={contentTimeAgo(
+                  buildTimeAgo(new Date(libro.created_at).getTime()),
+                )}
+                className="bg-blue-400 text-white"
+              />
+            )}
+          />
+          <Column
+            header="Acciones"
+            align={"center"}
+            body={(autor: AutorConLibros) => {
+              return (
+                <div className="flex gap-2 justify-center">
+                  <Button
+                    severity="danger"
+                    size="small"
+                    icon={
+                      isPedingDeleteAutor
+                        ? "pi pi-spin pi-spinner"
+                        : "pi pi-trash"
+                    }
+                    tooltip="Eliminar autor"
+                    tooltipOptions={{ position: "left" }}
+                    onClick={() => {
+                      handleDeleteAutor(autor.id);
+                    }}
+                    disabled={isPedingDeleteAutor}
+                  />
+                  <Button
+                    severity="info"
+                    size="small"
+                    icon="pi pi-pencil"
+                    tooltip="Editar libro"
+                    onClick={() => {
+                      setAutor(autor);
+                      setShowAutorDialog(true);
+                    }}
+                    tooltipOptions={{ position: "left" }}
+                  />
+                </div>
+              );
+            }}
+          />
+        </DataTable>
       </Dialog>
     </div>
   );

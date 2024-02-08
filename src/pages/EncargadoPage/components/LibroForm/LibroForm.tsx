@@ -49,7 +49,7 @@ const LibroForm: React.FC<LibroFormProps> = ({ libro }) => {
     AxiosError,
     Autor[]
   >({
-    queryKey: ["autores"],
+    queryKey: ["autoresOnlyName"],
     queryFn: () => {
       return axios.get("/autores");
     },
@@ -63,8 +63,8 @@ const LibroForm: React.FC<LibroFormProps> = ({ libro }) => {
     if (libro) {
       updateLibroMutation(
         {
+          ...libro,
           ...data,
-          id: libro.id,
         },
         {
           onSettled() {
@@ -147,7 +147,6 @@ const LibroForm: React.FC<LibroFormProps> = ({ libro }) => {
                   "p-invalid": errors.description,
                 })}
                 rows={7}
-                autoResize
                 {...field}
               />
               {getFormErrorMessage("description")}
