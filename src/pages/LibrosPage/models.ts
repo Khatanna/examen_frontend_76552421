@@ -1,6 +1,7 @@
+import { TimeStamp } from "../../model";
 import { Autor } from "../AutoresPage/models";
 
-interface LibroBase {
+interface LibroBase extends TimeStamp {
   titulo: string;
   description: string;
   lote: string;
@@ -8,8 +9,6 @@ interface LibroBase {
 
 export interface Libro extends LibroBase {
   id: number;
-  updated_at: string;
-  created_at: string;
 }
 
 export interface LibroForm extends LibroBase {

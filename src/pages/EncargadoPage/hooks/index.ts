@@ -4,3 +4,6 @@ export * from "./useUpdateLibro";
 export * from "./useCreateAutor";
 export * from "./useDeleteAutor";
 export * from "./useUpdateAutor";
+export * from "./useCreateCliente";
+export * from "./useDeleteCliente";
+export * from "./useUpdateCliente";

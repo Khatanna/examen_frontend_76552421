@@ -4,3 +4,6 @@ export * from "./update-libro";
 export * from "./create-autor";
 export * from "./delete-autor";
 export * from "./update-autor";
+export * from "./create-cliente";
+export * from "./delete-cliente";
+export * from "./update-cliente";
