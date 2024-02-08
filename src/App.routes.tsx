@@ -6,6 +6,8 @@ import { MainLayout } from "./components/MainLayout";
 const AutoresPage = lazy(() => import("./pages/AutoresPage/AutoresPage"));
 const LibrosPage = lazy(() => import("./pages/LibrosPage/LibrosPage"));
 const HomePage = lazy(() => import("./pages/HomePage/HomePage"));
+const EncargadoPage = lazy(() => import("./pages/EncargadoPage/EncargadoPage"));
+
 function App() {
   return (
     <BrowserRouter>
@@ -19,6 +21,10 @@ function App() {
           <Route
             path="/libros"
             element={<LazyComponent Component={LibrosPage} />}
+          />
+          <Route
+            path="/encargado"
+            element={<LazyComponent Component={EncargadoPage} />}
           />
         </Route>
         <Route path="*" element={<div>Ruta inexitente</div>}></Route>

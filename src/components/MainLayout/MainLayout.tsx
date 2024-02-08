@@ -8,38 +8,17 @@ const MainLayout: React.FC = () => {
       <BreadCrumb
         model={[
           {
-            label: "Autores",
-            url: "/autores",
-            icon: (
-              <i className="pi pi-users" style={{ fontSize: "1.2rem" }}></i>
-            ),
-            className:
-              location.pathname === "/autores" ? "text-orange-500" : "",
-            template: (item) => {
-              return (
-                <Link
-                  to={item.url!}
-                  className="
-								flex gap-2 items-center
-								"
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              );
-            },
-          },
-          {
             label: "Libros",
             url: "/libros",
+            separator: false,
             icon: <i className="pi pi-book" style={{ fontSize: "1.2rem" }}></i>,
             template: (item) => {
               return (
                 <Link
                   to={item.url!}
                   className="
-								flex gap-2 items-center
-								"
+        				flex gap-2 items-center
+        				"
                 >
                   {item.icon}
                   {item.label}
@@ -47,6 +26,31 @@ const MainLayout: React.FC = () => {
               );
             },
             className: location.pathname === "/libros" ? "text-orange-500" : "",
+            visible: location.pathname === "/libros",
+          },
+          {
+            label: "Encargado",
+            separator: false,
+            visible: location.pathname === "/encargado",
+            url: "/encargado",
+            icon: (
+              <i className="pi pi-briefcase" style={{ fontSize: "1.2rem" }}></i>
+            ),
+            template: (item) => {
+              return (
+                <Link
+                  to={item.url!}
+                  className="
+                flex gap-2 items-center
+                "
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              );
+            },
+            className:
+              location.pathname === "/encargado" ? "text-orange-500" : "",
           },
         ]}
         home={{
@@ -66,52 +70,6 @@ const MainLayout: React.FC = () => {
             );
           },
           className: location.pathname === "/" ? "text-orange-500" : "",
-          items: [
-            {
-              label: "Autores",
-              url: "/autores",
-              icon: (
-                <i className="pi pi-users" style={{ fontSize: "1.2rem" }}></i>
-              ),
-              className:
-                location.pathname === "/autores" ? "text-orange-500" : "",
-              template: (item) => {
-                return (
-                  <Link
-                    to={item.url!}
-                    className="
-									flex gap-2 items-center
-									"
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                );
-              },
-            },
-            {
-              label: "Libros",
-              url: "/libros",
-              icon: (
-                <i className="pi pi-book" style={{ fontSize: "1.2rem" }}></i>
-              ),
-              template: (item) => {
-                return (
-                  <Link
-                    to={item.url!}
-                    className="
-									flex gap-2 items-center
-									"
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                );
-              },
-              className:
-                location.pathname === "/libros" ? "text-orange-500" : "",
-            },
-          ],
         }}
       />
       <Outlet />
