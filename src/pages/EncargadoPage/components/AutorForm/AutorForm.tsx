@@ -77,7 +77,7 @@ const AutorForm: React.FC<AutorFormProps> = ({ autor }) => {
         )}
       />
       <Button
-        label="Guardar"
+        label={autor ? "Actualizar" : "Registrar"}
         className="mt-2"
         type="submit"
         size="small"

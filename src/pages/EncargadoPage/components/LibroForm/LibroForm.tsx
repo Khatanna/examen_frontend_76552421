@@ -98,10 +98,7 @@ const LibroForm: React.FC<LibroFormProps> = ({ libro }) => {
       className="flex flex-col gap-4 mt-2"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div
-        className="flex gap-4 
-	"
-      >
+      <div className="flex gap-4">
         <Controller
           control={control}
           name="titulo"

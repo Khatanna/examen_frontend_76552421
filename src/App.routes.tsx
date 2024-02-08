@@ -1,7 +1,8 @@
 import { lazy } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { LazyComponent } from "./components/LazyComponent";
 import { MainLayout } from "./components/MainLayout";
+import { DialogModalProvider } from "./pages/EncargadoPage/providers/DialogModalProvider";
 
 const AutoresPage = lazy(() => import("./pages/AutoresPage/AutoresPage"));
 const LibrosPage = lazy(() => import("./pages/LibrosPage/LibrosPage"));
@@ -23,9 +24,17 @@ function App() {
             element={<LazyComponent Component={LibrosPage} />}
           />
           <Route
-            path="/encargado"
-            element={<LazyComponent Component={EncargadoPage} />}
-          />
+            element={
+              <DialogModalProvider>
+                <Outlet />
+              </DialogModalProvider>
+            }
+          >
+            <Route
+              path="/encargado"
+              element={<LazyComponent Component={EncargadoPage} />}
+            />
+          </Route>
         </Route>
         <Route path="*" element={<div>Ruta inexitente</div>}></Route>
       </Routes>

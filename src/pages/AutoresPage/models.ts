@@ -1,10 +1,11 @@
 import { TimeStamp } from "../../model";
 import { Libro } from "../LibrosPage/models";
 
-export interface Autor extends TimeStamp {
+export interface Autor {
   id: number;
   name: string;
 }
+export interface AutorBase extends TimeStamp {}
 
 export interface AutorConLibros extends Autor {
   libros: Libro[];

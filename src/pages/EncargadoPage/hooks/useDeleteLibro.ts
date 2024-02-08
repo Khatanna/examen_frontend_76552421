@@ -5,7 +5,7 @@ import { AxiosError, AxiosResponse } from "axios";
 
 export const useDeleteLibro = () => {
   const toast = useToast();
-  return useMutation<AxiosResponse, AxiosError, string>({
+  return useMutation<AxiosResponse, AxiosError, number>({
     mutationFn: (id) => deleteLibro(id),
     onMutate() {
       toast.show({

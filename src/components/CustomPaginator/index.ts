@@ -1,0 +1,1 @@
+export { default as CustomPaginator } from './CustomPaginator';
