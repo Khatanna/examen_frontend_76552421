@@ -5,7 +5,7 @@ import { Dialog } from "primereact/dialog";
 import { Column } from "primereact/column";
 import { buildTimeAgo } from "../../utilities/buildTimeAgo";
 import { InputText } from "primereact/inputtext";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "primereact/button";
 import { AxiosResponse } from "axios";
 import { Paginate } from "../../model";
@@ -15,8 +15,10 @@ import { Toast } from "primereact/toast";
 import { Badge } from "primereact/badge";
 import { Chip } from "primereact/chip";
 import { Paginator } from "primereact/paginator";
-
+import { useToast } from "../../hooks";
 const EncargadoPage: React.FC = () => {
+  const toast = useToast();
+  // const toast = useToastStore((s) => s.toast!);
   const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery<AxiosResponse<Paginate<LibroConAutor>>>({
     queryKey: ["librosConAutores", page],
@@ -32,7 +34,6 @@ const EncargadoPage: React.FC = () => {
   });
   const [expandedRows, setExpandedRows] = useState<LibroConAutor[]>([]);
   const [showDialog, setShowDialog] = useState(false);
-  const toast = useRef<Toast>(null);
   const Header = () => {
     return (
       <div className="flex gap-2 justify-end">
@@ -47,9 +48,7 @@ const EncargadoPage: React.FC = () => {
     );
   };
   const showRegisterToast = () => {
-    if (!toast.current) return;
-
-    toast.current.show({
+    toast.show({
       severity: "success",
       summary: "Libro registrado",
       detail: "El libro se ha registrado correctamente",
