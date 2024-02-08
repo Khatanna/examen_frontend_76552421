@@ -1,24 +1,22 @@
-import { useQuery } from "@tanstack/react-query";
-import { axios } from "../../config/axios";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { AxiosResponse } from "axios";
+import { Badge } from "primereact/badge";
+import { Button } from "primereact/button";
+import { Chip } from "primereact/chip";
+import { Column } from "primereact/column";
 import { DataTable } from "primereact/datatable";
 import { Dialog } from "primereact/dialog";
-import { Column } from "primereact/column";
-import { buildTimeAgo } from "../../utilities/buildTimeAgo";
-import { InputText } from "primereact/inputtext";
-import { useState } from "react";
-import { Button } from "primereact/button";
-import { AxiosResponse } from "axios";
-import { Paginate } from "../../model";
-import { LibroConAutor } from "../LibrosPage/models";
-import { InputTextarea } from "primereact/inputtextarea";
-import { Toast } from "primereact/toast";
-import { Badge } from "primereact/badge";
-import { Chip } from "primereact/chip";
 import { Paginator } from "primereact/paginator";
-import { useToast } from "../../hooks";
+import { useState } from "react";
+import { axios } from "../../config/axios";
+import { Paginate } from "../../model";
+import { buildTimeAgo } from "../../utilities/buildTimeAgo";
+import { LibroConAutor } from "../LibrosPage/models";
+import { LibroForm } from "./components/LibroForm";
+import { useDeleteLibro } from "./hooks";
+
 const EncargadoPage: React.FC = () => {
-  const toast = useToast();
-  // const toast = useToastStore((s) => s.toast!);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery<AxiosResponse<Paginate<LibroConAutor>>>({
     queryKey: ["librosConAutores", page],
@@ -34,6 +32,7 @@ const EncargadoPage: React.FC = () => {
   });
   const [expandedRows, setExpandedRows] = useState<LibroConAutor[]>([]);
   const [showDialog, setShowDialog] = useState(false);
+  const [libro, setLibro] = useState<LibroConAutor>();
   const Header = () => {
     return (
       <div className="flex gap-2 justify-end">
@@ -47,16 +46,16 @@ const EncargadoPage: React.FC = () => {
       </div>
     );
   };
-  const showRegisterToast = () => {
-    toast.show({
-      severity: "success",
-      summary: "Libro registrado",
-      detail: "El libro se ha registrado correctamente",
-    });
-  };
+  const { mutate: deleteLibroMutation, isPending } = useDeleteLibro();
 
-  const handleRegister = () => {
-    showRegisterToast();
+  const handleDelete = (id: string) => {
+    deleteLibroMutation(id, {
+      onSettled() {
+        queryClient.invalidateQueries({
+          queryKey: ["librosConAutores", page],
+        });
+      },
+    });
   };
 
   const content = (name: string) => (
@@ -79,7 +78,6 @@ const EncargadoPage: React.FC = () => {
 
   return (
     <div>
-      <Toast ref={toast} />
       <DataTable
         size="small"
         value={data?.data.data}
@@ -110,8 +108,8 @@ const EncargadoPage: React.FC = () => {
         onRowToggle={(e) => setExpandedRows(e.data as LibroConAutor[])}
       >
         <Column field="id" header="N°" align={"center"} />
-        <Column expander header="Descripción" align={"center"} />
         <Column field="titulo" header="Titulo" />
+        <Column expander header="Descripción" align={"center"} />
         <Column
           field="lote"
           header="N° de lote"
@@ -122,7 +120,7 @@ const EncargadoPage: React.FC = () => {
         />
         <Column
           field="autor.name"
-          header="autor"
+          header="Autor"
           body={(libro: LibroConAutor) => {
             return (
               <Chip
@@ -136,6 +134,7 @@ const EncargadoPage: React.FC = () => {
         <Column
           field="created_at"
           header="Fecha de creación"
+          align={"center"}
           body={(libro: LibroConAutor) => (
             <Chip
               template={contentTimeAgo(
@@ -147,21 +146,30 @@ const EncargadoPage: React.FC = () => {
         />
         <Column
           header="Acciones"
-          body={(_libro: LibroConAutor) => {
+          align={"center"}
+          body={(libro) => {
             return (
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center">
                 <Button
                   severity="danger"
                   size="small"
-                  icon="pi pi-trash"
+                  icon={isPending ? "pi pi-spin pi-spinner" : "pi pi-trash"}
                   tooltip="Eliminar libro"
                   tooltipOptions={{ position: "left" }}
+                  onClick={() => {
+                    handleDelete(libro.id);
+                  }}
+                  disabled={isPending}
                 />
                 <Button
                   severity="info"
                   size="small"
                   icon="pi pi-pencil"
                   tooltip="Editar libro"
+                  onClick={() => {
+                    setLibro(libro);
+                    setShowDialog(true);
+                  }}
                   tooltipOptions={{ position: "left" }}
                 />
               </div>
@@ -170,63 +178,36 @@ const EncargadoPage: React.FC = () => {
         />
       </DataTable>
       <Dialog
+        header={
+          libro ? (
+            <div className="flex items-center gap-2">
+              <i
+                className="pi pi-book text-red-500"
+                style={{
+                  fontSize: "1.4rem",
+                }}
+              ></i>
+              <div>Editar libro</div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <i
+                className="pi pi-book text-red-500"
+                style={{
+                  fontSize: "1.4rem",
+                }}
+              ></i>
+              <div>Registrar libro</div>
+            </div>
+          )
+        }
         visible={showDialog}
-        style={{ width: "50%" }}
+        style={{ width: "30%" }}
         modal
         onHide={() => setShowDialog(false)}
-        content={({ hide }) => (
-          <div
-            style={{
-              borderRadius: "12px",
-              backgroundColor: "white",
-            }}
-          >
-            <form
-              className="flex flex-col px-8 py-5 gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <div
-                className="flex 
-								gap-2 
-							"
-              >
-                <InputText placeholder="Titulo" className="w-full" autoFocus />
-                <InputText placeholder="N° de lote" className="w-full" />
-              </div>
-              <div>
-                <InputTextarea
-                  placeholder="Descripción"
-                  rows={5}
-                  autoResize
-                  className="w-full"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="submit"
-                  label="Registrar"
-                  severity="success"
-                  icon="pi pi-check"
-                  size="small"
-                  onClick={(e) => {
-                    handleRegister();
-                    hide(e);
-                  }}
-                />
-                <Button
-                  label="Cancelar"
-                  icon="pi pi-times"
-                  severity="danger"
-                  onClick={hide}
-                  size="small"
-                />
-              </div>
-            </form>
-          </div>
-        )}
-      />
+      >
+        <LibroForm libro={libro} />
+      </Dialog>
     </div>
   );
 };
