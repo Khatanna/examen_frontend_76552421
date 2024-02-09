@@ -5,7 +5,8 @@ import React, { useRef } from "react";
 import { axios } from "../../../../config/axios";
 import {
   exportToExcelClientesConPrestamosVencidos,
-  exportToExcelPrestamosVencidos,
+  exportToExcelGroupByYearMonthAndWeek,
+  exportToExcelPrestamos,
 } from "../../../../utilities";
 import {
   useAutorDialog,
@@ -17,7 +18,6 @@ import {
 import { AutorTable } from "../AutorTable";
 import { ClienteTable } from "../ClienteTable";
 import { PrestamosTable } from "../PrestamosTable";
-import { Prestamo } from "../PrestamosTable/PrestamosTable";
 import { Cliente } from "../../../ClientePage/models";
 
 export type HeaderProps = {
@@ -51,6 +51,15 @@ const Header: React.FC<HeaderProps> = () => {
       label: "Exportar a Excel",
       items: [
         {
+          label: "Todos los prestamos",
+          icon: "pi pi-file-excel",
+          command: () => {
+            axios.get<Prestamo[]>("/prestamos").then((response) => {
+              exportToExcelPrestamos(response);
+            });
+          },
+        },
+        {
           label: "Clientes con prestamos vencidos",
           icon: "pi pi-file-excel",
           command: () => {
@@ -76,7 +85,22 @@ const Header: React.FC<HeaderProps> = () => {
                 },
               })
               .then((response) => {
-                exportToExcelPrestamosVencidos(response);
+                exportToExcelPrestamos(response);
+              });
+          },
+        },
+        {
+          label: "Prestamos agrupados por fecha",
+          icon: "pi pi-file-excel",
+          command: () => {
+            axios
+              .get("/prestamos", {
+                params: {
+                  segmentedByDateAndWeek: true,
+                },
+              })
+              .then((response) => {
+                exportToExcelGroupByYearMonthAndWeek(response);
               });
           },
         },
@@ -198,14 +222,6 @@ const Header: React.FC<HeaderProps> = () => {
         />
       </div>
       <div className="flex gap-2">
-        <Button
-          tooltip="Exportar a PDF"
-          tooltipOptions={{ position: "left" }}
-          icon="pi pi-file-pdf"
-          rounded
-          className="p-button-danger"
-          size="small"
-        />
         <Button
           size="small"
           tooltip="Exportar a Excel"

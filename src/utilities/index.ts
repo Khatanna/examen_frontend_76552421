@@ -5,3 +5,4 @@ export * from "./getTimeAgo";
 export * from "./get-random-color";
 export * from "./exportToExcel";
 export * from "./format-date-for-mysql";
+export * from "./map-month-to-name";

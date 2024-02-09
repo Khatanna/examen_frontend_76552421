@@ -1,3 +1,9 @@
 {
-  "conventionalCommits.scopes": ["build", "libros", "encargado", "cliente"]
+  "conventionalCommits.scopes": [
+    "build",
+    "libros",
+    "encargado",
+    "cliente",
+    "prestamos"
+  ]
 }
