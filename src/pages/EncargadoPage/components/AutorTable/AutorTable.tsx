@@ -11,7 +11,6 @@ import { getTimeAgo } from "../../../../utilities";
 import { AutorConLibros } from "../../../AutoresPage/models";
 import { LibroConAutor } from "../../../LibrosPage/models";
 import { AutorActions } from "../AutorActions";
-import { Paginator } from "primereact/paginator";
 import { CustomPaginator } from "../../../../components/CustomPaginator";
 
 export type AutorTableProps = {
@@ -20,7 +19,6 @@ export type AutorTableProps = {
 
 const AutorTable: React.FC<AutorTableProps> = () => {
   const [page, setPage] = useState(1);
-  const [first, setFirst] = useState(0);
   const { data, isLoading } = useQuery<AxiosResponse<Paginate<AutorConLibros>>>(
     {
       queryKey: ["autores", page],

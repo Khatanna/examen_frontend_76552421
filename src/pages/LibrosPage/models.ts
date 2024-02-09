@@ -1,13 +1,13 @@
 import { TimeStamp } from "../../model";
 import { Autor } from "../AutoresPage/models";
 
-interface LibroBase {
+interface LibroBase extends TimeStamp {
   titulo: string;
   description: string;
   lote: string;
 }
 
-export interface Libro extends TimeStamp {
+export interface Libro extends LibroBase {
   id: number;
 }
 

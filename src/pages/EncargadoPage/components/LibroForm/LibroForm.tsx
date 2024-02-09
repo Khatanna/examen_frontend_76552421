@@ -123,6 +123,7 @@ const LibroForm: React.FC<LibroFormProps> = ({ libro }) => {
               <InputText
                 placeholder="N° de lote"
                 {...field}
+                type="number"
                 className={classNames("w-full", {
                   "p-invalid": errors.lote,
                 })}

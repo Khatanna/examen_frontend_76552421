@@ -13,3 +13,6 @@ export * from "./useUpdateCliente";
 export * from "./useDialogModalContext";
 export * from "./useAutorDialog";
 export * from "./useClienteDialog";
+export * from "./usePrestamoDialog";
+export * from "./useLibroDialog";
+export * from "./useRegisterDevolucion";

@@ -8,15 +8,20 @@ import { useState } from "react";
 import { CustomPaginator } from "../../components/CustomPaginator";
 import { axios } from "../../config/axios";
 import { Paginate } from "../../model";
-import { getTimeAgo } from "../../utilities";
+import { getRandomColor, getTimeAgo } from "../../utilities";
 import { LibroConAutor } from "../LibrosPage/models";
 import { Header } from "./components/Header";
 import { LibroActions } from "./components/LibroActions";
 
-const content = (name: string) => () => {
+export const contentWithInitialName = (name: string) => () => {
   return (
     <>
-      <span className="bg-blue-400 rounded-full w-[2rem] h-[2rem] flex items-center justify-center text-white p-0 m-0">
+      <span
+        className="rounded-full w-[2rem] h-[2rem] flex items-center justify-center text-white p-0 m-0"
+        style={{
+          backgroundColor: getRandomColor(),
+        }}
+      >
         {name[0]}
       </span>
       <span className="ml-2 font-medium">{name}</span>
@@ -87,7 +92,7 @@ const EncargadoPage: React.FC = () => {
           return (
             <Chip
               icon="pi pi-user"
-              template={content(libro.autor.name)}
+              template={contentWithInitialName(libro.autor.name)}
               className="pl-0 pr-3"
             />
           );
